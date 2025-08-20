@@ -10,126 +10,105 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentCallBackController extends Controller
 {
-    
-    
-    
-     public function success()
+    public function success(Request $request)
     {
-
-        return view('payments.success');
+        Log::info('DPO Payment Success Callback Received:', $request->all());
+        Log::info('DPO Payment Success Callback Headers:', $request->headers->all());
         
+        $transToken = $request->input('TransToken');
+        $transRef = $request->input('TransRef');
+        $companyRef = $request->input('CompanyRef');
+        
+        Log::info('DPO Success Callback Parameters:', [
+            'transToken' => $transToken,
+            'transRef' => $transRef,
+            'companyRef' => $companyRef,
+        ]);
+        
+        // Find booking by company reference
+        $booking = Booking::where('reference', $companyRef)->first();
+        
+        Log::info('Booking lookup result (Success):', [
+            'companyRef' => $companyRef,
+            'bookingFound' => $booking ? 'Yes' : 'No',
+            'bookingId' => $booking ? $booking->id : null,
+            'currentIsPaid' => $booking ? $booking->is_paid : null,
+        ]);
+        
+        if ($booking) {
+            Log::info('Processing success callback for booking:', [
+                'booking_id' => $booking->id,
+                'amount' => $booking->amount,
+            ]);
+            
+            $booking->update([
+                'is_paid' => true,
+                'paid_at' => now(),
+                'amount_paid' => $booking->amount,
+            ]);
+            
+            // Refresh the booking to get updated data
+            $booking->refresh();
+            
+            Log::info('Payment status updated (Success):', [
+                'booking_id' => $booking->id,
+                'is_paid' => $booking->is_paid,
+                'paid_at' => $booking->paid_at,
+                'amount_paid' => $booking->amount_paid,
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment processed successfully',
+                'booking' => $booking,
+            ]);
+        }
+        
+        Log::warning('Booking not found for success callback:', [
+            'companyRef' => $companyRef,
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Booking not found',
+        ], 404);
     }
-
-    public function cancel()
+    
+    public function cancel(Request $request)
     {
-
-        return view('payments.cancel');
+        Log::info('DPO Payment Cancel Callback:', $request->all());
+        
+        $transToken = $request->input('TransToken');
+        $transRef = $request->input('TransRef');
+        $companyRef = $request->input('CompanyRef');
+        
+        // Find booking by company reference
+        $booking = Booking::where('reference', $companyRef)->first();
+        
+        if ($booking) {
+            Log::info('Payment cancelled for booking:', [
+                'booking_id' => $booking->id,
+                'reference' => $booking->reference,
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment cancelled',
+                'booking' => $booking,
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Booking not found',
+        ], 404);
     }
-    
-    
-    // public function success(Request $request)
-    // {
-        // Log::info('DPO Payment Success Callback Received:', $request->all());
-        // Log::info('DPO Payment Success Callback Headers:', $request->headers->all());
-        
-        // $transToken = $request->input('TransToken');
-        // $transRef = $request->input('TransRef');
-        // $companyRef = $request->input('CompanyRef');
-        
-        // Log::info('DPO Success Callback Parameters:', [
-        //     'transToken' => $transToken,
-        //     'transRef' => $transRef,
-        //     'companyRef' => $companyRef,
-        // ]);
-        
-        // // Find booking by company reference
-        // $booking = Booking::where('reference', $companyRef)->first();
-        
-        // Log::info('Booking lookup result (Success):', [
-        //     'companyRef' => $companyRef,
-        //     'bookingFound' => $booking ? 'Yes' : 'No',
-        //     'bookingId' => $booking ? $booking->id : null,
-        //     'currentIsPaid' => $booking ? $booking->is_paid : null,
-        // ]);
-        
-        // if ($booking) {
-        //     Log::info('Processing success callback for booking:', [
-        //         'booking_id' => $booking->id,
-        //         'amount' => $booking->amount,
-        //     ]);
-            
-        //     $booking->update([
-        //         'is_paid' => true,
-        //         'paid_at' => now(),
-        //         'amount_paid' => $booking->amount,
-        //     ]);
-            
-        //     // Refresh the booking to get updated data
-        //     $booking->refresh();
-            
-        //     Log::info('Payment status updated (Success):', [
-        //         'booking_id' => $booking->id,
-        //         'is_paid' => $booking->is_paid,
-        //         'paid_at' => $booking->paid_at,
-        //         'amount_paid' => $booking->amount_paid,
-        //     ]);
-            
-        //     return response()->json([
-        //         'success' => true,
-        //         'message' => 'Payment processed successfully',
-        //         'booking' => $booking,
-        //     ]);
-        // }
-        
-        // Log::warning('Booking not found for success callback:', [
-        //     'companyRef' => $companyRef,
-        // ]);
-        
-        // return response()->json([
-        //     'success' => false,
-        //     'message' => 'Booking not found',
-        // ], 404);
-    // }
-    
-    // public function cancel(Request $request)
-    // {
-    //     Log::info('DPO Payment Cancel Callback:', $request->all());
-        
-    //     $transToken = $request->input('TransToken');
-    //     $transRef = $request->input('TransRef');
-    //     $companyRef = $request->input('CompanyRef');
-        
-    //     // Find booking by company reference
-    //     $booking = Booking::where('reference', $companyRef)->first();
-        
-    //     if ($booking) {
-    //         Log::info('Payment cancelled for booking:', [
-    //             'booking_id' => $booking->id,
-    //             'reference' => $booking->reference,
-    //         ]);
-            
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Payment cancelled',
-    //             'booking' => $booking,
-    //         ]);
-    //     }
-        
-    //     return response()->json([
-    //         'success' => false,
-    //         'message' => 'Booking not found',
-    //     ], 404);
-    // }
     
     public function callBack(Request $request)
     {
-        
         Log::info('DPO Payment Callback Received:', $request->all());
+        Log::info('DPO Payment Callback Headers:', $request->headers->all());
         
-                Log::info('header:', $request->header());
-
-        
-
         $transToken = $request->input('TransToken');
         $transRef = $request->input('TransRef');
         $companyRef = $request->input('CompanyRef');
@@ -180,7 +159,6 @@ class PaymentCallBackController extends Controller
                 
                 // Generate receipt
                 try {
-                    
                     $receiptService = new ReceiptService();
                     $receipt = $receiptService->generateReceipt($booking);
                     

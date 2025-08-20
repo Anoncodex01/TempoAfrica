@@ -1,156 +1,61 @@
-# TempoAfrica
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-A Laravel-based accommodation and house booking management system for Africa.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Features
+## About Laravel
 
-- Accommodation management
-- House booking system
-- Customer management
-- Payment integration (DPO)
-- SMS notifications (Beem Africa, Airtel)
-- Firebase integration
-- Admin dashboard
-- Responsive UI
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-## Requirements
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-- PHP 8.1 or higher
-- Composer
-- Node.js & NPM
-- MySQL 5.7 or higher
-- Laravel 10.x
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Installation
+## Learning Laravel
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Anoncodex01/TempoAfrica.git
-   cd TempoAfrica
-   ```
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-2. **Install PHP dependencies**
-   ```bash
-   composer install
-   ```
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-3. **Install Node.js dependencies**
-   ```bash
-   npm install
-   ```
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-4. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
+## Laravel Sponsors
 
-5. **Configure your .env file**
-   - Set your database credentials
-   - Configure Firebase credentials
-   - Set up SMS service keys
-   - Configure payment gateway settings
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-6. **Database Setup**
-   ```bash
-   php artisan migrate
-   php artisan db:seed
-   ```
+### Premium Partners
 
-7. **Storage Setup**
-   ```bash
-   php artisan storage:link
-   ```
-
-8. **Build Assets**
-   ```bash
-   npm run build
-   ```
-
-9. **Start Development Server**
-   ```bash
-   php artisan serve
-   npm run dev
-   ```
-
-## Environment Variables
-
-### Required Configuration
-
-Create a `.env` file based on `.env.example` and configure the following:
-
-#### Database
-```
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=tempoafrica
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
-
-#### Firebase (for notifications)
-```
-FIREBASE_CREDENTIALS_PATH=storage/firebase/firebase_credentials.json
-FIREBASE_PROJECT_ID=your_project_id
-```
-
-#### SMS Services
-```
-BEEM_AFRICA_API_KEY=your_beem_api_key
-BEEM_AFRICA_SECRET_KEY=your_beem_secret_key
-AIRTEL_SMS_API_KEY=your_airtel_api_key
-AIRTEL_SMS_SECRET_KEY=your_airtel_secret_key
-```
-
-#### Payment Gateway (DPO)
-```
-DPO_COMPANY_TOKEN=your_dpo_token
-DPO_SERVICE_TYPE=your_service_type
-DPO_PAYMENT_URL=https://secure.3gdirectpay.com/API/v6/
-```
-
-## Firebase Setup
-
-1. Download your Firebase service account credentials JSON file
-2. Place it in `storage/firebase/firebase_credentials.json`
-3. Update `FIREBASE_PROJECT_ID` in your `.env` file
-
-## File Structure
-
-```
-TempoAfrica/
-├── app/
-│   ├── Http/Controllers/
-│   ├── Models/
-│   └── Services/
-├── resources/
-│   ├── views/
-│   ├── css/
-│   └── js/
-├── public/
-├── storage/
-└── routes/
-```
-
-## Security
-
-- Never commit `.env` files to version control
-- Keep Firebase credentials secure
-- Use strong database passwords
-- Regularly update dependencies
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+
+## Code of Conduct
+
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+
+## Security Vulnerabilities
+
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
 ## License
 
-This project is proprietary software.
-
-## Support
-
-For support, please contact the development team.
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
