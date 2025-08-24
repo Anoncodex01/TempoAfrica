@@ -106,6 +106,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('customer/booking/update-booking', 'updateBooking');
     Route::post('customer/booking/clear-pending', 'clearPendingBooking');
     Route::get('customer/booking/{id}/receipt', 'getReceipt');
+    Route::get('customer/booking/{id}/payment-url', 'getPaymentUrl');
     Route::get('customer/bookings', 'getUserBookings');
     Route::get('customer/booking/{id}', 'getBookingDetails');
     
@@ -131,6 +132,12 @@ Route::middleware('auth:api')->group(function () {
         Route::post('owner/bookings/{id}/check_in', 'updateBookingStatus'); 
         Route::post('owner/bookings/{id}/check_out', 'updateBookingStatus');
         Route::post('owner/bookings/{id}/cancel', 'updateBookingStatus');
+    });
+
+    // Admin booking cleanup routes
+    Route::controller(\App\Http\Controllers\Api\Admin\BookingCleanupController::class)->group(function () {
+        Route::post('admin/cleanup-expired-pending-bookings', 'cleanupExpiredPendingBookings');
+        Route::get('admin/expired-pending-bookings-count', 'getExpiredPendingBookingsCount');
     });
 
 });

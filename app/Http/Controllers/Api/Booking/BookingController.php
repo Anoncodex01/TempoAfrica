@@ -96,17 +96,17 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // Check if user already has an unpaid booking less than 30 minutes old
+        // Check if user already has an unpaid booking less than 15 minutes old
         $hasPendingBooking = Booking::where('customer_id', $customer->id)
             ->where('is_paid', 0)
-            ->where('created_at', '>', now()->subMinutes(30))
+            ->where('created_at', '>', now()->subMinutes(15))
             ->exists();
 
         if ($hasPendingBooking) {
 
             $pendingBooking = Booking::where('customer_id', $customer->id)
                 ->where('is_paid', 0)
-                ->where('created_at', '>', now()->subMinutes(30))
+                ->where('created_at', '>', now()->subMinutes(15))
                 ->first();
 
             $paymentPayload = app(DPOPaymentService::class)->preparePaymentPayload($pendingBooking, $customer);
@@ -114,7 +114,7 @@ class BookingController extends Controller
             return response()->json([
                 'success' => $paymentPayload['success'],
                 'url' => $paymentPayload['url'],
-                'message' => 'You have a pending unpaid booking or cancel it. Please complete it or wait 30 minutes.',
+                'message' => 'You have a pending booking. Please complete payment or wait 15 minutes for it to expire.',
                 'booking' => $pendingBooking,
             ]);
 
@@ -405,6 +405,64 @@ class BookingController extends Controller
             'receipt_filename' => $booking->receipt_filename,
             'booking' => $booking,
         ]);
+    }
+
+    /**
+     * Get payment URL for an existing booking
+     */
+    public function getPaymentUrl(Request $request, $id)
+    {
+        $customer = $request->user();
+        
+        $booking = Booking::where('id', $id)
+            ->where('customer_id', $customer->id)
+            ->where('is_paid', false)
+            ->first();
+            
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found or already paid',
+            ], 404);
+        }
+
+        // Check if booking has expired (older than 15 minutes)
+        if ($booking->created_at < now()->subMinutes(15)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This booking has expired. Please create a new booking.',
+            ], 400);
+        }
+
+        try {
+            // Generate payment URL using DPO service
+            $dpoService = new \App\Services\DPOPaymentService();
+            $paymentResult = $dpoService->preparePaymentPayload($booking, $customer);
+
+            if ($paymentResult['success']) {
+                return response()->json([
+                    'success' => true,
+                    'paymentUrl' => $paymentResult['url'],
+                    'message' => 'Payment URL generated successfully',
+                    'booking' => $booking,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to generate payment URL. Please try again.',
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to generate payment URL', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate payment URL: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
 

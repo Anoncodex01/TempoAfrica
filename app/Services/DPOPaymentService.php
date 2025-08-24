@@ -240,4 +240,121 @@ class DPOPaymentService
             ];
         }
     }
+
+    /**
+     * Verify payment with DPO servers using HTTP request
+     * This is crucial for security - we must verify the payment with DPO
+     */
+    public function verifyPayment($transToken, $transRef, $companyRef)
+    {
+        // Use HTTP verification since DPO package doesn't have verification method
+        return $this->verifyPaymentHttp($transToken, $transRef, $companyRef);
+    }
+
+    /**
+     * Verify payment using HTTP request to DPO API
+     * Fallback method if DPO package doesn't have verification
+     */
+    public function verifyPaymentHttp($transToken, $transRef, $companyRef)
+    {
+        try {
+            Log::info('Verifying payment with DPO via HTTP:', [
+                'transToken' => $transToken,
+                'transRef' => $transRef,
+                'companyRef' => $companyRef,
+            ]);
+
+            // Prepare verification request
+            $verificationUrl = $this->dpoUrl . '/payv2.php';
+            $verificationData = [
+                'ID' => $transToken,
+                'TransRef' => $transRef,
+                'CompanyRef' => $companyRef,
+                'action' => 'verify',
+            ];
+
+            // Make HTTP request to DPO
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $verificationUrl);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($verificationData));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            Log::info('DPO HTTP Verification Response:', [
+                'httpCode' => $httpCode,
+                'response' => $response,
+            ]);
+
+            if ($httpCode === 200 && $response) {
+                // Parse response (DPO might return XML or JSON)
+                $responseData = $this->parseDPOResponse($response);
+                
+                if ($responseData && isset($responseData['Result']) && $responseData['Result'] === '000') {
+                    Log::info('Payment verified successfully via HTTP');
+                    return [
+                        'success' => true,
+                        'verified' => true,
+                        'data' => $responseData,
+                    ];
+                } else {
+                    Log::warning('Payment verification failed via HTTP:', $responseData);
+                    return [
+                        'success' => false,
+                        'verified' => false,
+                        'data' => $responseData,
+                    ];
+                }
+            } else {
+                Log::error('HTTP verification failed:', [
+                    'httpCode' => $httpCode,
+                    'response' => $response,
+                ]);
+                return [
+                    'success' => false,
+                    'verified' => false,
+                    'error' => 'HTTP request failed',
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::error('Error in HTTP payment verification:', [
+                'error' => $e->getMessage(),
+                'transToken' => $transToken,
+                'transRef' => $transRef,
+                'companyRef' => $companyRef,
+            ]);
+            
+            return [
+                'success' => false,
+                'verified' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Parse DPO response (could be XML or JSON)
+     */
+    private function parseDPOResponse($response)
+    {
+        // Try to parse as JSON first
+        $jsonData = json_decode($response, true);
+        if ($jsonData !== null) {
+            return $jsonData;
+        }
+
+        // Try to parse as XML
+        $xmlData = simplexml_load_string($response);
+        if ($xmlData !== false) {
+            return json_decode(json_encode($xmlData), true);
+        }
+
+        // If neither works, return as string
+        return ['raw_response' => $response];
+    }
 }

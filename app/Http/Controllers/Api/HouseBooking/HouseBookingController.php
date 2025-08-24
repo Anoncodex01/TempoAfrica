@@ -61,17 +61,26 @@ class HouseBookingController extends Controller
             ], 422);
         }
 
-        // Check if user already has an unpaid booking less than 30 minutes old
+        // Check if user already has an unpaid booking less than 15 minutes old
         $hasPendingBooking = HouseBooking::where('customer_id', $customer->id)
-            ->where('is_paid', false)
-            ->where('created_at', '>', now()->subMinutes(30))
+            ->where('is_paid', 0)
+            ->where('created_at', '>', now()->subMinutes(15))
             ->exists();
 
         if ($hasPendingBooking) {
+            $pendingBooking = HouseBooking::where('customer_id', $customer->id)
+                ->where('is_paid', 0)
+                ->where('created_at', '>', now()->subMinutes(15))
+                ->first();
+
+            $paymentPayload = app(DPOPaymentService::class)->preparePaymentPayload($pendingBooking, $customer);
+
             return response()->json([
-                'success' => false,
-                'message' => 'You already have a pending house booking. Please complete the payment or wait for it to expire.',
-            ], 409);
+                'success' => $paymentPayload['success'],
+                'url' => $paymentPayload['url'],
+                'message' => 'You have a pending booking. Please complete payment or wait 15 minutes for it to expire.',
+                'booking' => $pendingBooking,
+            ]);
         }
 
         // Get the house

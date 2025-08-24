@@ -438,7 +438,7 @@ class RoomsController extends Controller
                 $query->where('is_paid', 1)
                     ->orWhere(function ($q) {
                         $q->where('is_paid', 0)
-                            ->where('created_at', '>', now()->subMinutes(30));
+                            ->where('created_at', '>', now()->subMinutes(15));
                     });
             })
             ->get();
@@ -486,7 +486,7 @@ class RoomsController extends Controller
                 $query->where('is_paid', 1)
                     ->orWhere(function ($q) {
                         $q->where('is_paid', 0)
-                            ->where('created_at', '>', now()->subMinutes(30));
+                            ->where('created_at', '>', now()->subMinutes(15));
                     });
             })
             ->get();
@@ -498,6 +498,7 @@ class RoomsController extends Controller
         while ($currentDate->lte($endDate)) {
             $dateString = $currentDate->toDateString();
             $isBooked = false;
+            $isPending = false;
             $bookingInfo = null;
 
             // Check if this date is booked
@@ -507,10 +508,12 @@ class RoomsController extends Controller
                 
                 if ($currentDate->between($bookingStart, $bookingEnd)) {
                     $isBooked = true;
+                    $isPending = !$booking->is_paid; // Check if booking is unpaid (pending)
                     $bookingInfo = [
                         'from_date' => $booking->from_date,
                         'to_date' => $booking->to_date,
                         'is_paid' => $booking->is_paid,
+                        'status' => $booking->is_paid ? 'paid' : 'pending',
                     ];
                     break;
                 }
@@ -520,6 +523,7 @@ class RoomsController extends Controller
                 'date' => $dateString,
                 'day' => $currentDate->day,
                 'is_available' => !$isBooked,
+                'is_pending' => $isPending, // New field for pending status
                 'is_today' => $currentDate->isToday(),
                 'is_past' => $currentDate->isPast(),
                 'booking_info' => $bookingInfo,

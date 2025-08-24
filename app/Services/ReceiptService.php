@@ -32,8 +32,8 @@ class ReceiptService
         // Generate filename
         $filename = 'receipt_' . $booking->reference . '_' . date('Y-m-d_H-i-s') . '.pdf';
         
-        // Save to public/images/receipts folder (using existing images directory)
-        $publicPath = public_path('images/receipts/' . $filename);
+        // Save to public/receipts folder
+        $publicPath = public_path('receipts/' . $filename);
         
         // Create directory if it doesn't exist
         $directory = dirname($publicPath);
@@ -41,17 +41,19 @@ class ReceiptService
             mkdir($directory, 0755, true);
         }
         
+        // Save the PDF file
         file_put_contents($publicPath, $dompdf->output());
         
         // Generate URL for public access
-        $url = url('images/receipts/' . $filename);
+        $url = url('receipts/' . $filename);
         
         // Log the generated URL for debugging
         \Log::info('Receipt generated', [
             'booking_id' => $booking->id,
             'filename' => $filename,
             'url' => $url,
-            'storage_path' => $path
+            'public_path' => $publicPath,
+            'directory' => $directory
         ]);
         
         return [
